@@ -11,8 +11,6 @@ import Json.Decode as Decode
 import Lamdera.Frontend
 import Lamdera.Types exposing (..)
 import Msg exposing (..)
-import Svg exposing (..)
-import Svg.Attributes exposing (..)
 import Task
 
 
@@ -57,24 +55,14 @@ init =
 
 view : Model -> Html FrontendMsg
 view model =
-    let
-        bg =
-            rect
-                [ width "100%"
-                , height "100%"
-                , fill "#000"
-                ]
-                []
-    in
     Html.div []
-        [ svg
-            [ width "400"
-            , height "400"
-            , viewBox "0 0 400 400"
+        [ Html.div
+            [ style "width" "400px"
+            , style "height" "400px"
+            , style "position" "relative"
+            , style "background-color" "#000"
             ]
-            ([ bg ]
-                ++ (model.players |> Dict.toList |> List.map Tuple.second |> List.map renderPlayer)
-            )
+            (model.players |> Dict.toList |> List.map Tuple.second |> List.map renderPlayer)
         ]
 
 
@@ -126,14 +114,15 @@ toDirectionUp string =
             KeyUp Up
 
 
-renderPlayer : Player -> Svg msg
+renderPlayer : Player -> Html msg
 renderPlayer player =
-    rect
-        [ x (String.fromInt player.snake.x)
-        , y (String.fromInt player.snake.y)
-        , width "20"
-        , height "20"
-        , fill "#FFCE42"
+    Html.div
+        [ style "position" "absolute"
+        , style "left" <| String.fromInt player.snake.x ++ "px"
+        , style "top" <| String.fromInt player.snake.y ++ "px"
+        , style "width" "20px"
+        , style "height" "20px"
+        , style "background-color" "#FFCE42"
         ]
         []
 
