@@ -1,5 +1,6 @@
 module Backend exposing (Model, app)
 
+import Dict exposing (..)
 import Lamdera.Backend
 import Lamdera.Types exposing (..)
 import Msg exposing (..)
@@ -17,13 +18,28 @@ app =
         }
 
 
+newPlayerState : Player
+newPlayerState =
+    { snake = { x = 0, y = 0 }
+    , keyState =
+        { leftPressed = False
+        , rightPressed = False
+        , upPressed = False
+        , downPressed = False
+        }
+    }
+
+
 type alias Model =
-    { counter : Int, clients : Set ClientId }
+    { counter : Int
+    , players : Dict ClientId Player
+    , clients : Set ClientId
+    }
 
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { counter = 0, clients = Set.empty }, Cmd.none )
+    ( { counter = 0, players = Dict.empty, clients = Set.empty }, Cmd.none )
 
 
 update : BackendMsg -> Model -> ( Model, Cmd BackendMsg )
@@ -35,20 +51,68 @@ update msg model =
 
 updateFromFrontend : ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
 updateFromFrontend clientId msg model =
+    let
+        x =
+            Debug.log "backendModel" model
+    in
     case msg of
-        CounterIncremented ->
-            ( { model | counter = model.counter + 1 }, sendToFrontend clientId (CounterNewValue (model.counter + 1)) )
+        ClientKeyUp key ->
+            let
+                newPlayer =
+                    case Dict.get clientId model.players of
+                        Just player ->
+                            let
+                                keystate =
+                                    player.keyState
 
-        CounterDecremented ->
-            ( { model | counter = model.counter - 1 }, sendToFrontend clientId (CounterNewValue (model.counter + 1)) )
+                                newKeyState =
+                                    case key of
+                                        Left ->
+                                            { keystate | leftPressed = True }
+
+                                        Right ->
+                                            { keystate | rightPressed = True }
+
+                                        Up ->
+                                            { keystate | upPressed = True }
+
+                                        Down ->
+                                            { keystate | downPressed = True }
+
+                                snake =
+                                    player.snake
+
+                                newSnake =
+                                    { snake | x = snake.x + 10 }
+                            in
+                            { player
+                                | keyState = newKeyState
+                                , -- hack!
+                                  snake = newSnake
+                            }
+
+                        Nothing ->
+                            -- Shouldn't happen...
+                            newPlayerState
+
+                newModel =
+                    { model | players = Dict.insert clientId newPlayer model.players }
+            in
+            ( newModel, sendToFrontend clientId (NewGameState newModel.players) )
+
+        ClientKeyDown key ->
+            ( model, Cmd.none )
 
         ClientJoin ->
             let
                 newModel =
-                    { model | clients = Set.insert clientId model.clients }
+                    { model
+                        | clients = Set.insert clientId model.clients
+                        , players = Dict.insert clientId newPlayerState model.players
+                    }
             in
             ( newModel
-            , sendToFrontend clientId (CounterNewValue model.counter)
+            , sendToFrontend clientId (NewGameState newModel.players)
             )
 
 

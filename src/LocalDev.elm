@@ -14,6 +14,7 @@ import Msg exposing (BackendMsg, FrontendMsg, ToBackend, ToFrontend)
 -- Lamdera/core generates msgs with these names but of a different type, and we're unsafeCoercing them into this type.
 -- Basically, don't touch this black magic.
 
+
 type Msg
     = FEMsg Msg.FrontendMsg
     | BEMsg Msg.BackendMsg
@@ -93,7 +94,7 @@ main =
         { init = init
         , view = \( fem, _ ) -> mapDocument FEMsg (Frontend.app.view fem)
         , update = update
-        , subscriptions = subscriptions
+        , subscriptions = \( fem, _ ) -> Sub.map FEMsg (Frontend.app.subscriptions fem)
         , onUrlRequest = \url -> FEMsg (Frontend.app.onUrlRequest url)
         , onUrlChange = \ureq -> FEMsg (Frontend.app.onUrlChange ureq)
         }

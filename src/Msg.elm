@@ -1,20 +1,53 @@
-module Msg exposing (BackendMsg(..), FrontendMsg(..), ToBackend(..), ToFrontend(..))
+module Msg exposing (BackendMsg(..), Board, FrontendMsg(..), KeyState, Keys(..), Player, Snake, ToBackend(..), ToFrontend(..))
 
+import Dict exposing (..)
 import Json.Decode
 import Json.Encode
 import Lamdera.Types exposing (ClientId, WsError)
 
 
+type alias Board =
+    { snakes : List Snake
+    }
+
+
+type alias KeyState =
+    { leftPressed : Bool
+    , rightPressed : Bool
+    , upPressed : Bool
+    , downPressed : Bool
+    }
+
+
+type alias Snake =
+    { x : Int
+    , y : Int
+    }
+
+
+type alias Player =
+    { snake : Snake
+    , keyState : KeyState
+    }
+
+
+type Keys
+    = Left
+    | Right
+    | Up
+    | Down
+
+
 type FrontendMsg
-    = Increment
-    | Decrement
+    = KeyDown Keys
+    | KeyUp Keys
     | FNoop
 
 
 type ToBackend
     = ClientJoin
-    | CounterIncremented
-    | CounterDecremented
+    | ClientKeyUp Keys
+    | ClientKeyDown Keys
 
 
 type BackendMsg
@@ -22,4 +55,4 @@ type BackendMsg
 
 
 type ToFrontend
-    = CounterNewValue Int
+    = NewGameState (Dict ClientId Player)
