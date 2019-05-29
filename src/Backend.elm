@@ -56,7 +56,7 @@ updateFromFrontend clientId msg model =
             Debug.log "backendModel" model
     in
     case msg of
-        ClientKeyUp key ->
+        ClientKeyDown key ->
             let
                 newPlayer =
                     case Dict.get clientId model.players of
@@ -79,6 +79,12 @@ updateFromFrontend clientId msg model =
                                         Down ->
                                             { keystate | downPressed = True }
 
+                                        Reset ->
+                                            keystate
+
+                                        Other ->
+                                            keystate
+
                                 snake =
                                     player.snake
 
@@ -98,9 +104,17 @@ updateFromFrontend clientId msg model =
                 newModel =
                     { model | players = Dict.insert clientId newPlayer model.players }
             in
-            ( newModel, sendToFrontend clientId (NewGameState newModel.players) )
+            if key == Reset then
+                let
+                    ( resetModel, cmds ) =
+                        init
+                in
+                ( resetModel, broadcast model.clients (NewGameState newModel.players) )
 
-        ClientKeyDown key ->
+            else
+                ( newModel, broadcast model.clients (NewGameState newModel.players) )
+
+        ClientKeyUp key ->
             ( model, Cmd.none )
 
         ClientJoin ->

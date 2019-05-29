@@ -73,6 +73,10 @@ keyDecoderDown =
 
 toDirectionDown : String -> FrontendMsg
 toDirectionDown string =
+    let
+        x =
+            Debug.log "keyreceived:" string
+    in
     case string of
         "ArrowLeft" ->
             KeyDown Left
@@ -86,8 +90,11 @@ toDirectionDown string =
         "ArrowDown" ->
             KeyDown Down
 
+        "x" ->
+            KeyDown Reset
+
         _ ->
-            KeyDown Up
+            KeyDown Other
 
 
 keyDecoderUp : Decode.Decoder FrontendMsg
@@ -148,6 +155,12 @@ update msg model =
                 Down ->
                     ( model, sendToBackend (ClientKeyUp Down) )
 
+                Reset ->
+                    ( model, sendToBackend (ClientKeyUp Reset) )
+
+                Other ->
+                    ( model, sendToBackend (ClientKeyUp Other) )
+
         KeyUp key ->
             case key of
                 Left ->
@@ -161,6 +174,12 @@ update msg model =
 
                 Down ->
                     ( model, sendToBackend (ClientKeyDown Down) )
+
+                Reset ->
+                    ( model, sendToBackend (ClientKeyDown Reset) )
+
+                Other ->
+                    ( model, sendToBackend (ClientKeyDown Other) )
 
         FNoop ->
             ( model, Cmd.none )

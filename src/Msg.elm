@@ -36,6 +36,8 @@ type Keys
     | Right
     | Up
     | Down
+    | Reset
+    | Other
 
 
 type FrontendMsg
